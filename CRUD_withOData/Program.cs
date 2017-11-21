@@ -36,6 +36,75 @@ namespace Microsoft.Crm.Sdk.Samples
 
         #endregion
 
+        #region Main method
+
+        /// <summary>
+        /// Standard Main() method used by most SDK samples.
+        /// </summary>
+        /// <param name="args"></param>
+        static void Main(string[] args)
+        {
+            try
+            {
+                // Obtain the target organization's Web address and client logon 
+                // credentials from the user.
+                ServerConnection serverConnect = new ServerConnection();
+                ServerConnection.Configuration config = serverConnect.GetServerConfiguration();
+
+                var app = new Program();
+                app.Run(config, true);
+            }
+
+            catch (FaultException<Microsoft.Xrm.Sdk.OrganizationServiceFault> ex)
+            {
+                Console.WriteLine("The application terminated with an error.");
+                Console.WriteLine("Timestamp: {0}", ex.Detail.Timestamp);
+                Console.WriteLine("Code: {0}", ex.Detail.ErrorCode);
+                Console.WriteLine("Message: {0}", ex.Detail.Message);
+                Console.WriteLine("Trace: {0}", ex.Detail.TraceText);
+                Console.WriteLine("Inner Fault: {0}",
+                    null == ex.Detail.InnerFault ? "No Inner Fault" : "Has Inner Fault");
+            }
+            catch (System.TimeoutException ex)
+            {
+                Console.WriteLine("The application terminated with an error.");
+                Console.WriteLine("Message: {0}", ex.Message);
+                Console.WriteLine("Stack Trace: {0}", ex.StackTrace);
+                Console.WriteLine("Inner Fault: {0}",
+                    null == ex.InnerException.Message ? "No Inner Fault" : ex.InnerException.Message);
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("The application terminated with an error.");
+                Console.WriteLine(ex.Message);
+
+                // Display the details of the inner exception.
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine(ex.InnerException.Message);
+
+                    FaultException<Microsoft.Xrm.Sdk.OrganizationServiceFault> fe = ex.InnerException
+                        as FaultException<Microsoft.Xrm.Sdk.OrganizationServiceFault>;
+                    if (fe != null)
+                    {
+                        Console.WriteLine("Timestamp: {0}", fe.Detail.Timestamp);
+                        Console.WriteLine("Code: {0}", fe.Detail.ErrorCode);
+                        Console.WriteLine("Message: {0}", fe.Detail.Message);
+                        Console.WriteLine("Trace: {0}", fe.Detail.TraceText);
+                        Console.WriteLine("Inner Fault: {0}",
+                            null == fe.Detail.InnerFault ? "No Inner Fault" : "Has Inner Fault");
+                    }
+                }
+            }
+            finally
+            {
+                Console.WriteLine("Press <Enter> to exit.");
+                Console.ReadLine();
+            }
+        }
+
+        #endregion Main method
+
         #region How To Sample Code
 
         /// <summary>
@@ -57,8 +126,14 @@ namespace Microsoft.Crm.Sdk.Samples
                     // Enable early-bound type support to add/update entity records required for this sample.
                     _serviceProxy.EnableProxyTypes();
 
-                    ExecutionMethods.newExecuteMultipleRequest(_serviceProxy);
+                    //ExecutionMethods.RetriveMultipleWithFetchXML(_serviceProxy);
+                    ExecutionMethods.RetriveMultipleWithQueryExpression(_serviceProxy);
 
+                    ExecutionMethods.newExecuteMultipleRequest(_serviceProxy);
+                    Console.WriteLine();
+                    Console.WriteLine("Press any key to contnue...");
+                    Console.ReadKey();
+                    
                     /// <summary>
                     /// Existing Code with Create, Update and Delete (Optional)
                     /// </summary> 
@@ -137,13 +212,12 @@ namespace Microsoft.Crm.Sdk.Samples
                     }
                     //</snippetExecuteTransaction2>
                     #endregion Execute Transaction for update records
-
                     //<snippetExecuteTransaction3>
                     DeleteRequiredRecords(promptforDelete);
                     //</snippetExecuteTransaction3>
-
+                    ExecutionMethods.RetriveMultipleWithQueryExpression(_serviceProxy);
                     #endregion
-                    
+
                     ///<summary> Create & Modify CUSTOM Entity </summary>
                     ///Reference: https://msdn.microsoft.com/en-us/library/gg509071.aspx
                     #region Sample Code
@@ -197,13 +271,13 @@ namespace Microsoft.Crm.Sdk.Samples
                     ///
                     #region SampleCode for Dependent Entity Creation
                     Entity order = new Entity("salesorder");
-                    order["name"] = "Shipment Order: A Song of Ice and Fire";
+                    order["name"] = "Shipment Order: iPhone X";
 
                     Entity invoice = new Entity("invoice");
                     invoice["name"] = "Invoice: INV-00001";
 
                     Entity email = new Entity("email");
-                    email["subject"] = "Thank you for purchasing: A Song of Ice and Fire";
+                    email["subject"] = "Thank you for having our services.";
                     CreateRequest createOrderRequest = new CreateRequest
                     {
                         Target = order
@@ -251,7 +325,7 @@ namespace Microsoft.Crm.Sdk.Samples
                         throw;
                     }
                     #endregion
-                    
+
                     Console.WriteLine();
                     Console.WriteLine("Press any key to contnue...");
                     Console.ReadKey();
@@ -300,8 +374,8 @@ namespace Microsoft.Crm.Sdk.Samples
                     }
                     catch (FaultException<OrganizationServiceFault> ex)
                     {
-                        Console.WriteLine("Transaction rolled back...");
-                        Console.WriteLine("Create request failed for the account{0} and the reason being: {1}",
+                        Console.WriteLine("Transaction automatically rolled back...");
+                        Console.WriteLine("...Create request failed for the account{0} and the reason being: {1}",
                             ((ExecuteTransactionFault)(ex.Detail)).FaultedRequestIndex + 1, ex.Detail.Message);
                         throw;
                     }
@@ -510,75 +584,6 @@ namespace Microsoft.Crm.Sdk.Samples
             };
         }
         #endregion
-
-        #region Main method
-
-        /// <summary>
-        /// Standard Main() method used by most SDK samples.
-        /// </summary>
-        /// <param name="args"></param>
-        static void Main(string[] args)
-        {
-            try
-            {
-                // Obtain the target organization's Web address and client logon 
-                // credentials from the user.
-                ServerConnection serverConnect = new ServerConnection();
-                ServerConnection.Configuration config = serverConnect.GetServerConfiguration();
-
-                var app = new Program();
-                app.Run(config, true);
-            }
-
-            catch (FaultException<Microsoft.Xrm.Sdk.OrganizationServiceFault> ex)
-            {
-                Console.WriteLine("The application terminated with an error.");
-                Console.WriteLine("Timestamp: {0}", ex.Detail.Timestamp);
-                Console.WriteLine("Code: {0}", ex.Detail.ErrorCode);
-                Console.WriteLine("Message: {0}", ex.Detail.Message);
-                Console.WriteLine("Trace: {0}", ex.Detail.TraceText);
-                Console.WriteLine("Inner Fault: {0}",
-                    null == ex.Detail.InnerFault ? "No Inner Fault" : "Has Inner Fault");
-            }
-            catch (System.TimeoutException ex)
-            {
-                Console.WriteLine("The application terminated with an error.");
-                Console.WriteLine("Message: {0}", ex.Message);
-                Console.WriteLine("Stack Trace: {0}", ex.StackTrace);
-                Console.WriteLine("Inner Fault: {0}",
-                    null == ex.InnerException.Message ? "No Inner Fault" : ex.InnerException.Message);
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine("The application terminated with an error.");
-                Console.WriteLine(ex.Message);
-
-                // Display the details of the inner exception.
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine(ex.InnerException.Message);
-
-                    FaultException<Microsoft.Xrm.Sdk.OrganizationServiceFault> fe = ex.InnerException
-                        as FaultException<Microsoft.Xrm.Sdk.OrganizationServiceFault>;
-                    if (fe != null)
-                    {
-                        Console.WriteLine("Timestamp: {0}", fe.Detail.Timestamp);
-                        Console.WriteLine("Code: {0}", fe.Detail.ErrorCode);
-                        Console.WriteLine("Message: {0}", fe.Detail.Message);
-                        Console.WriteLine("Trace: {0}", fe.Detail.TraceText);
-                        Console.WriteLine("Inner Fault: {0}",
-                            null == fe.Detail.InnerFault ? "No Inner Fault" : "Has Inner Fault");
-                    }
-                }
-            }
-            finally
-            {
-                Console.WriteLine("Press <Enter> to exit.");
-                Console.ReadLine();
-            }
-        }
-
-        #endregion Main method
     }
 }
 // </snippetExecuteTransaction>
